@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 from bot_config import *
 load_dotenv()
 
-# 🎯 ID o nombre del rol permitido (ajusta esto a tu rol)
+# 🎯 ID o nombre del rol permitido
 ROL_PERMITIDO = "DJ"  # Puedes usar el nombre o el ID del rol
 
 # ✅ Check global para permitir solo a usuarios con el rol especificado
