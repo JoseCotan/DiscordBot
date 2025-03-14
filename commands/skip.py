@@ -10,7 +10,7 @@ def setup(bot):
     registrar_comando(bot, skip)
 
 @commands.command(name="play")
-@commands.has_role("DJ")  # Cambia "DJ" por el rol permitido
+@commands.has_role("DJ")
 async def play(ctx, *, song: str):
     await ctx.send(f"🎶 Reproduciendo: {song}")
 

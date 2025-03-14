@@ -7,17 +7,17 @@ from dotenv import load_dotenv
 from bot_config import *
 load_dotenv()
 
-# 🎯 ID o nombre del rol permitido
-ROL_PERMITIDO = "DJ"  # Puedes usar el nombre o el ID del rol
+# ID o nombre del rol permitido
+ROL_PERMITIDO = "DJ"
 
-# ✅ Check global para permitir solo a usuarios con el rol especificado
+# Check global para permitir solo a usuarios con el rol especificado
 def tiene_rol_permitido(ctx):
     return any(role.name == ROL_PERMITIDO for role in ctx.author.roles)
 
-# 🛡️ Agrega el check global para todos los comandos
+# Agrega el check global para todos los comandos
 bot.add_check(tiene_rol_permitido)
 
-# 🚫 Mensaje personalizado si el usuario no tiene el rol requerido
+# Mensaje personalizado si el usuario no tiene el rol requerido
 @bot.event
 async def on_command_error(ctx, error):
     if isinstance(error, commands.CheckFailure):
@@ -25,7 +25,7 @@ async def on_command_error(ctx, error):
     else:
         raise error
 
-# 🚀 Cargar los comandos desde la carpeta "comandos"
+# Cargar los comandos desde la carpeta "comandos"
 for filename in os.listdir("./commands"):
     if filename.endswith(".py"):
         extension = f"commands.{filename[:-3]}"
@@ -36,7 +36,7 @@ for filename in os.listdir("./commands"):
         except Exception as e:
             print(f"❌ Error al cargar {extension}: {e}")
 
-# 🟢 Evento cuando el bot está listo
+# Evento cuando el bot está listo
 @bot.event
 async def on_ready():
     print(f"Bot conectado como {bot.user}")

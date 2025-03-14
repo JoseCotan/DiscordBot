@@ -1,6 +1,7 @@
 import yt_dlp
 from music_controls import *
 from nextcord.ext import commands
+from commands.join import join
 from auxiliar import registrar_comando
 
 class Cog(commands.Cog):

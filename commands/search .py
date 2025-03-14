@@ -4,6 +4,7 @@ from nextcord.ext import commands
 from nextcord import Interaction, SelectOption
 from nextcord.ui import View, Select
 from music_controls import *
+from commands.join import join
 from auxiliar import registrar_comando
 from bot_config import download_folder
 

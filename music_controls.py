@@ -5,10 +5,26 @@ import yt_dlp
 import random
 from commands.stop import stop
 from commands.skip import skip
-from commands.join import join
 from commands.queue import queue
+from commands.put_song import put_song_command
+from commands.put_song_local import *
 from bot_config import *
 
+class PlayModal(nextcord.ui.Modal):
+    def __init__(self, ctx):
+        super().__init__("Reproducir Canción")
+        self.ctx = ctx
+
+        self.url_input = nextcord.ui.TextInput(
+            label="Introduce el nombre o enlace de la canción"
+        )
+        self.add_item(self.url_input)
+
+    async def callback(self, interaction: nextcord.Interaction):
+        url = self.url_input.value
+        await interaction.response.send_message(f"🎶 Procesando: `{url}`", ephemeral=True)
+        await put_song_command(self.ctx, url)
+        
 class MusicControls(nextcord.ui.View):
     def __init__(self, ctx):
         super().__init__(timeout=None) 
@@ -191,6 +207,16 @@ class MusicControls(nextcord.ui.View):
     async def cola_button(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
         await interaction.response.defer()
         await queue(self.ctx)
+        
+    @nextcord.ui.button(label="Canción por YT", style=nextcord.ButtonStyle.primary, row=2)
+    async def poner_cancion(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
+        modal = PlayModal(self.ctx)
+        await interaction.response.send_modal(modal)
+        
+    @nextcord.ui.button(label="Canción por local", style=nextcord.ButtonStyle.primary, row=2)
+    async def poner_cancion_local(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
+        modal = PlayModalLocal()
+        await interaction.response.send_modal(modal)
 
 
 async def play_next(ctx, controls: MusicControls = None):
@@ -231,16 +257,26 @@ async def play_next(ctx, controls: MusicControls = None):
     controls.current_song = next_song
 
     # Si la canción existe en el sistema de archivos, se usa localmente
+    print(next_song)
     if os.path.exists(next_song):
         audio_file = next_song
     else:
-        with yt_dlp.YoutubeDL({'quiet': True}) as ydl:
-            video_info = ydl.extract_info(next_song, download=False)
-            safe_title = "".join(c for c in video_info['title'] if c.isalnum() or c in " -_").rstrip()
-            audio_file = os.path.join(download_folder, f"{safe_title}.mp3")
+        # Si no es una URL, tratamos de buscarla en YouTube con ytsearch
+        search_query = f"ytsearch:{next_song}"  # Usamos ytsearch para buscar en YouTube
 
-            if not os.path.exists(audio_file):
-                ydl.download([next_song])
+        with yt_dlp.YoutubeDL({'quiet': True}) as ydl:
+            try:
+                # Buscamos la canción
+                video_info = ydl.extract_info(search_query, download=False)
+                safe_title = "".join(c for c in video_info['entries'][0]['title'] if c.isalnum() or c in " -_").rstrip()
+                audio_file = os.path.join(download_folder, f"{safe_title}.mp3")
+
+                if not os.path.exists(audio_file):  # Si no existe el archivo, lo descargamos
+                    ydl.download([search_query])
+
+            except Exception as e:
+                await ctx.send(f"🚫 Error al intentar buscar la canción: {str(e)}")
+                return
 
     def after_playing(_):
         asyncio.run_coroutine_threadsafe(play_next(ctx, controls), bot.loop)
@@ -265,6 +301,7 @@ async def play_next(ctx, controls: MusicControls = None):
     except Exception as e:
         if song_queue:
             await play_next(ctx, controls)
+
 
  
             

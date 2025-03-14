@@ -7,9 +7,9 @@ from nextcord.ui import View, Select
 from music_controls import song_queue
 
 class CancionSelect(Select):
-    def __init__(self, songs):
+    def __init__(self, canciones):
         options = [
-            SelectOption(label=os.path.basename(c)[:-4], value=c) for c in songs
+            SelectOption(label=os.path.basename(c)[:-4], value=c) for c in canciones
         ]
         super().__init__(
             placeholder="🎵 Selecciona una o más canciones",
