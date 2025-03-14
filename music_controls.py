@@ -6,24 +6,9 @@ import random
 from commands.stop import stop
 from commands.skip import skip
 from commands.queue import queue
-from commands.put_song import put_song_command
+from commands.put_song import *
 from commands.put_song_local import *
 from bot_config import *
-
-class PlayModal(nextcord.ui.Modal):
-    def __init__(self, ctx):
-        super().__init__("Reproducir Canción")
-        self.ctx = ctx
-
-        self.url_input = nextcord.ui.TextInput(
-            label="Introduce el nombre o enlace de la canción"
-        )
-        self.add_item(self.url_input)
-
-    async def callback(self, interaction: nextcord.Interaction):
-        url = self.url_input.value
-        await interaction.response.send_message(f"🎶 Procesando: `{url}`", ephemeral=True)
-        await put_song_command(self.ctx, url)
         
 class MusicControls(nextcord.ui.View):
     def __init__(self, ctx):

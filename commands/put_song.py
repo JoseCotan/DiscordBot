@@ -1,9 +1,11 @@
 import os
 import yt_dlp
+import re
+import nextcord
+from nextcord.ui import Modal
 from nextcord.ext import commands
 from auxiliar import registrar_comando
 from bot_config import download_folder, song_queue, config
-import re
 
 # Comando de Discord
 @commands.command(name="put_song")
@@ -13,6 +15,21 @@ async def put_song_command(ctx, url):
 # Registrar el comando
 def setup(bot):
     registrar_comando(bot, put_song_command)
+
+class PlayModal(Modal):
+    def __init__(self, ctx):
+        super().__init__("Reproducir Canción")
+
+        self.url_input = nextcord.ui.TextInput(
+            label="Introduce el nombre o enlace de la canción"
+        )
+        self.add_item(self.url_input)
+
+    async def callback(self, interaction: nextcord.Interaction):
+        url = self.url_input.value
+        await interaction.response.send_message(f"🎶 Procesando: `{url}`", ephemeral=True)
+        ctx = interaction.channel
+        await put_song_command(ctx, url)
 
 # Función reutilizable para descargar la canción
 async def put_song(ctx, url):
