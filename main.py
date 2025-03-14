@@ -41,5 +41,5 @@ for filename in os.listdir("./commands"):
 async def on_ready():
     print(f"Bot conectado como {bot.user}")
 
-# 🔑 Ejecutar el bot
+# Ejecutar el bot
 bot.run(secrets.TOKEN)
