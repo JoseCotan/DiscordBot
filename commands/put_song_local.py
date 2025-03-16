@@ -46,6 +46,16 @@ class PlayModalLocal(Modal):
                 ephemeral=True
             )
             return
+        
+        if len(canciones_disponibles) == 1:
+            ruta = os.path.join(carpeta_canciones, canciones_disponibles[0])
+            if 0 <= config.counter_song < len(song_queue):
+                song_queue.insert(config.counter_song + 1, ruta)
+            else:
+                song_queue.append(ruta)
+
+            await interaction.response.send_message(f"➖➖🔹**NUEVA CANCIÓN EN COLA**🔹➖➖\n 🎶 **{canciones_disponibles[0]}** 🎶\n📀 Canciones restantes en cola: **{len(song_queue) - config.counter_song}**")
+            return
 
         # Mostrar un Select con las canciones encontradas
         view = SelectCancionesLocalModal(canciones_disponibles, interaction.user)
@@ -82,4 +92,4 @@ class SelectCancionesLocalModal(View):
         else:
             song_queue.append(ruta)
 
-        await interaction.response.send_message(f"✅ **{cancion_elegida}** añadida a la cola.", ephemeral=True)
+        await interaction.response.send_message(f"➖➖🔹**NUEVA CANCIÓN EN COLA**🔹➖➖\n 🎶 **{cancion_elegida}** 🎶\n📀 Canciones restantes en cola: **{len(song_queue) - config.counter_song}**")

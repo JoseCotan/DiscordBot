@@ -63,7 +63,8 @@ class MusicControls(nextcord.ui.View):
             self.back_song = True  # Señal para retroceder en play_next
             await interaction.response.send_message("⏮️ Reproduciendo la canción anterior...", ephemeral=True)
             self.voice_client.stop()  # Detiene la canción actual y dispara el after_playing para llamar a play_next
-            await interaction.response.defer()  # Aplaza la respuesta
+            if not interaction.response.is_done():
+                await interaction.response.defer()
         else:
             await interaction.response.send_message("⚠️ No hay canción anterior para reproducir.", ephemeral=True)
 
@@ -247,9 +248,9 @@ async def play_next(ctx, controls: MusicControls = None):
         audio_file = next_song
     else:
         # Si no es una URL, tratamos de buscarla en YouTube con ytsearch
-        search_query = f"ytsearch:{next_song}"  # Usamos ytsearch para buscar en YouTube
+        search_query = f"ytsearch:{next_song},"  # Usamos ytsearch para buscar en YouTube
 
-        with yt_dlp.YoutubeDL({'quiet': True}) as ydl:
+        with yt_dlp.YoutubeDL({'quiet': True, 'outtmpl': os.path.join(download_folder, '%(title)s.%(ext)s')}) as ydl:
             try:
                 # Buscamos la canción
                 video_info = ydl.extract_info(search_query, download=False)
@@ -287,9 +288,7 @@ async def play_next(ctx, controls: MusicControls = None):
         if song_queue:
             await play_next(ctx, controls)
 
-
  
-            
 # Crear botones para controlar la música
 async def create_controls(ctx):
     button_play_pause = nextcord.ui.Button(label="Pausar", style=nextcord.ButtonStyle.primary)

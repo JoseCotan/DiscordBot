@@ -38,12 +38,27 @@ async def search(ctx, *, query):
     
     files = os.listdir(download_folder)
     matching_files = [f for f in files if query.lower() in f.lower() and f.endswith(".mp3")]
-    voice_client = ctx.voice_client
 
     if not matching_files:
-        await ctx.send("No se encontraron canciones con ese nombre.")
+        await ctx.send("❌ No se encontraron canciones con ese nombre.")
         return
+
+    if len(matching_files) == 1:
+        file_path = os.path.join(download_folder, matching_files[0])
+        await ctx.send(f"➖➖🔹**NUEVA CANCIÓN EN COLA**🔹➖➖\n 🎶 **{os.path.basename(file_path)}** 🎶\n📀 Canciones restantes en cola: **{len(song_queue) - config.counter_song}**")
         
+        if ctx.voice_client:
+            song_queue.append(file_path)
+            if not ctx.voice_client.is_playing():
+                await play_next(ctx)
+        else:
+            await ctx.invoke(join)
+            song_queue.append(file_path)
+            await play_next(ctx)
+
+        await ctx.message.delete()
+        return
+
     cancion_view = View()
     cancion_view.add_item(CancionSelect(matching_files))
     seleccion_cancion_msg = await ctx.send("🎶 Selecciona las canciones:", view=cancion_view)
@@ -65,11 +80,14 @@ async def search(ctx, *, query):
     for cancion in canciones_seleccionadas:
         file_path = os.path.join(download_folder, cancion)
         await ctx.send(f"➖➖🔹**NUEVA CANCIÓN EN COLA**🔹➖➖\n 🎶 **{os.path.basename(file_path)}** 🎶\n📀 Canciones restantes en cola: **{len(song_queue) - config.counter_song}**")
-        if ctx.voice_client and ctx.voice_client.is_playing():
+
+        if ctx.voice_client:
             song_queue.append(file_path)
+            if not ctx.voice_client.is_playing():
+                await play_next(ctx)
         else:
             await ctx.invoke(join)
-            song_queue.append(file_path)  
+            song_queue.append(file_path)
             await play_next(ctx)
 
     # Elimina el mensaje de selección
