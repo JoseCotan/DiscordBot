@@ -25,11 +25,9 @@ async def skip(ctx):
     """Salta la canción actual."""
     voice_client = ctx.voice_client
 
-    if not voice_client or not voice_client.is_playing():
+    if not voice_client:
         await ctx.send("⚠️ No hay ninguna canción reproduciéndose.")
         return
-
-    await ctx.send("⏭️ Saltando canción...")
     
     # Simplemente detener la canción y dejar que el after llame a play_next(ctx)
     voice_client.stop()

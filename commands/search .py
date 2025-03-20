@@ -48,12 +48,12 @@ async def search(ctx, *, query):
         await ctx.send(f"➖➖🔹**NUEVA CANCIÓN EN COLA**🔹➖➖\n 🎶 **{os.path.basename(file_path)}** 🎶\n📀 Canciones restantes en cola: **{len(song_queue) - config.counter_song}**")
         
         if ctx.voice_client:
-            song_queue.append(file_path)
+            song_queue.insert(config.counter_song + 1, file_path)
             if not ctx.voice_client.is_playing():
                 await play_next(ctx)
         else:
             await ctx.invoke(join)
-            song_queue.append(file_path)
+            song_queue.insert(config.counter_song + 1, file_path)
             await play_next(ctx)
 
         await ctx.message.delete()
@@ -82,12 +82,12 @@ async def search(ctx, *, query):
         await ctx.send(f"➖➖🔹**NUEVA CANCIÓN EN COLA**🔹➖➖\n 🎶 **{os.path.basename(file_path)}** 🎶\n📀 Canciones restantes en cola: **{len(song_queue) - config.counter_song}**")
 
         if ctx.voice_client:
-            song_queue.append(file_path)
+            song_queue.insert(config.counter_song + 1, file_path)
             if not ctx.voice_client.is_playing():
                 await play_next(ctx)
         else:
             await ctx.invoke(join)
-            song_queue.append(file_path)
+            song_queue.insert(config.counter_song + 1, file_path)
             await play_next(ctx)
 
     # Elimina el mensaje de selección

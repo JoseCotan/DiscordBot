@@ -15,6 +15,10 @@ list_folder = "./listas"
 class Config:
     def __init__(self):
         self.counter_song = -1
+        self.is_playing_next = False
+        self.current_player_message = None
+        self.next_song_message = None
+        self.extra_message = ""
 
 # Instancia global
 config = Config()

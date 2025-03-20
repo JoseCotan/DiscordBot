@@ -53,20 +53,24 @@ class MusicControls(nextcord.ui.View):
 
             # Responder al usuario
             await interaction.response.edit_message(view=self)
+            if self.random_song:
+                await update_extra_message(self.ctx, "🎶 Modo aleatorio activado.")
+            else:
+                await update_extra_message(self.ctx, "🎶 Modo aleatorio desactivado.")
         else:
-            await interaction.response.send_message("⚠️ No hay canciones en la cola.", ephemeral=True)
+            await update_extra_message(self.ctx, "🎶 No hay canciones en la cola.")
 
 
     @nextcord.ui.button(emoji="<:atras:1343686478835879956>", style=nextcord.ButtonStyle.primary, row=0)
     async def back(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
         if self.voice_client and config.counter_song > 0 and (self.voice_client.is_playing() or self.voice_client.is_paused()):
             self.back_song = True  # Señal para retroceder en play_next
-            await interaction.response.send_message("⏮️ Reproduciendo la canción anterior...", ephemeral=True)
+            await update_extra_message(self.ctx, "⏮️ Reproduciendo la canción anterior...")
             self.voice_client.stop()  # Detiene la canción actual y dispara el after_playing para llamar a play_next
             if not interaction.response.is_done():
                 await interaction.response.defer()
         else:
-            await interaction.response.send_message("⚠️ No hay canción anterior para reproducir.", ephemeral=True)
+            await update_extra_message(self.ctx, "⚠️ No hay canción anterior para reproducir.")
 
     @nextcord.ui.button(emoji="<:pausa:1343632142327877765>", style=nextcord.ButtonStyle.green, row=0)
     async def pause_resume(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
@@ -75,23 +79,24 @@ class MusicControls(nextcord.ui.View):
             self.is_paused = True
             button.emoji = "<:reanudar:1343636106784280677>"  # Cambia el emoji a reanudar
             await interaction.response.edit_message(view=self)  # Actualiza el botón en el mensaje
-
+            await update_extra_message(self.ctx, "🎶 Canción pausada.")
         elif self.voice_client and self.is_paused:
             self.voice_client.resume()
             self.is_paused = False
             button.emoji = "<:pausa:1343632142327877765>"  # Cambia el emoji a pausa
             await interaction.response.edit_message(view=self)  # Actualiza el botón en el mensaje
+            await update_extra_message(self.ctx, "🎶 Canción reanudada.")
         else:
-            await interaction.response.send_message("⚠️ No hay ninguna canción reproduciéndose.", ephemeral=True)
+            await update_extra_message(self.ctx, "⚠️ No hay ninguna canción reproduciéndose.")
 
     @nextcord.ui.button(emoji="<:adelante:1343686462964760660>", style=nextcord.ButtonStyle.primary, row=0)
     async def skipp(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
-        if self.voice_client and self.voice_client.is_playing():
+        await interaction.response.defer()
+        if self.voice_client:
+            await update_extra_message(self.ctx, "⏭️ Saltando canción...")
             await skip(self.ctx)  # Esto activará el after de play(), llamando a play_next(ctx)
-            await interaction.response.defer()  # Aplaza la respuesta
-
         else:
-            await interaction.response.send_message("⚠️ No hay ninguna canción reproduciéndose.", ephemeral=True)
+            await update_extra_message(self.ctx, "⚠️ No hay ninguna canción reproduciéndose.")
 
     @nextcord.ui.button(label="⏹", style=nextcord.ButtonStyle.secondary, row=0)
     async def stop_button(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
@@ -100,10 +105,9 @@ class MusicControls(nextcord.ui.View):
             await stop(self.ctx)
             
         button.style = nextcord.ButtonStyle.danger
-        await interaction.response.edit_message(view=self)  
 
         song_queue.clear()
-        await interaction.followup.send("🎶 ¡La reproducción se ha detenido y la cola ha sido vaciada!")
+        await update_extra_message(self.ctx, "🎶 Reproducción detenida y cola vaciada.")
 
     @nextcord.ui.button(label="🔁", style=nextcord.ButtonStyle.secondary, row=1)
     async def repeat_toggle(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
@@ -113,6 +117,8 @@ class MusicControls(nextcord.ui.View):
             self.repeat = not self.repeat
             button.style = nextcord.ButtonStyle.green if self.repeat else nextcord.ButtonStyle.secondary
             await interaction.response.edit_message(view=self)
+            estado = "🔁 Modo repetición activado." if self.repeat else "🔁 Modo repetición desactivado."
+            await update_extra_message(self.ctx, estado)
 
     def update_volume_button_styles(self):
         # Actualiza los estilos de los botones de volumen basados en el volumen actual.
@@ -137,9 +143,9 @@ class MusicControls(nextcord.ui.View):
                 self.update_volume_button_styles()  # Actualiza los estilos de ambos botones
                 await interaction.response.edit_message(view=self)
             else:
-                await interaction.response.send_message("🔇 El volumen ya está en silencio.", ephemeral=True)
+                await update_extra_message(self.ctx, "🔇 El volumen ya está en silencio.")
         else:
-            await interaction.response.send_message("⚠️ No hay música reproduciéndose.", ephemeral=True)
+            await update_extra_message(self.ctx, "🔇 El volumen ya está en silencio.")
 
     @nextcord.ui.button(label="50", style=nextcord.ButtonStyle.primary, row=1)
     async def volume_display(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
@@ -158,9 +164,10 @@ class MusicControls(nextcord.ui.View):
                 self.update_volume_button_styles()  # Actualiza los estilos de ambos botones
                 await interaction.response.edit_message(view=self)
             else:
-                await interaction.response.send_message("🎧 El volumen ya está al máximo.", ephemeral=True)
+                await interaction.response.defer()
+                await update_extra_message(self.ctx, "🎧 El volumen ya está al máximo.")
         else:
-            await interaction.response.send_message("⚠️ No hay música reproduciéndose.", ephemeral=True)
+            await update_extra_message(self.ctx, "⚠️ No hay música reproduciéndose.")
 
 
     @nextcord.ui.button(label="🔇", style=nextcord.ButtonStyle.secondary, row=1)
@@ -173,21 +180,21 @@ class MusicControls(nextcord.ui.View):
                 self.voice_client.source.volume = global_volume
                 self.volume = global_volume
                 await interaction.response.defer()  # Aplaza la respuesta
-                await interaction.followup.send("🔊 Música desmutada.")  # Responde después
+                await update_extra_message(self.ctx, "🔊 Música desmutada.")
             else:
                 # Mutear
                 self.is_muted = True
                 self.volume = 0  # Establecer volumen a 0
                 self.voice_client.source.volume = self.volume
                 await interaction.response.defer()  # Aplaza la respuesta
-                await interaction.followup.send("🔇 Música silenciada.")  # Responde después
+                await update_extra_message(self.ctx, "🔇 Música silenciada.")
             
             # Actualiza los botones después de mutear/desmutear
             self.update_volume_button_styles()
             # Usar interaction.message para editar el mensaje
             await interaction.message.edit(view=self)  # Edita el mensaje con los botones actualizados
         else:
-            await interaction.response.send_message("⚠️ No hay música reproduciéndose.", ephemeral=True)
+            await update_extra_message(self.ctx, "⚠️ No hay música reproduciéndose.")
 
     @nextcord.ui.button(label="📝 Cola", style=nextcord.ButtonStyle.primary, row=2)
     async def cola_button(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
@@ -208,6 +215,10 @@ class MusicControls(nextcord.ui.View):
 async def play_next(ctx, controls: MusicControls = None):
     print(config.counter_song)
 
+    if config.is_playing_next:
+        return
+    config.is_playing_next = True
+
     # Verifica si controls es None y crea uno nuevo si es necesario
     if not controls:
         controls = MusicControls(ctx)
@@ -215,9 +226,8 @@ async def play_next(ctx, controls: MusicControls = None):
     voice_client = ctx.voice_client
     if not voice_client:
         return
-
+    
     if not song_queue:
-        await ctx.send("🎶 No hay canciones en la cola.")
         await check_disconnect(ctx)
         return
 
@@ -225,7 +235,6 @@ async def play_next(ctx, controls: MusicControls = None):
         if config.counter_song > 0:
             config.counter_song -= 1
         else:
-            await ctx.send("🚫 No hay canciones anteriores para reproducir.")
             return
         controls.back_song = False
     elif controls.random_song:
@@ -237,6 +246,7 @@ async def play_next(ctx, controls: MusicControls = None):
             config.counter_song += 1
         else:
             await ctx.send("🎶 Has llegado al final de la cola.")
+            config.is_playing_next = False
             return
 
     next_song = song_queue[config.counter_song]
@@ -265,6 +275,7 @@ async def play_next(ctx, controls: MusicControls = None):
                 return
 
     def after_playing(_):
+        config.is_playing_next = False
         asyncio.run_coroutine_threadsafe(play_next(ctx, controls), bot.loop)
 
     try:
@@ -278,12 +289,27 @@ async def play_next(ctx, controls: MusicControls = None):
         
         voice_client.source = nextcord.PCMVolumeTransformer(voice_client.source, volume=controls.volume)
 
-        await ctx.send(f"🎶 Reproduciendo: **{os.path.basename(audio_file[:-4])}**", view=controls)
-        if song_queue:
-            if controls.random_song:
-                await ctx.send(f"🎶 Siguiente canción: **Aleatorio**.")
-            else:
-                await ctx.send(f"🎶 Siguiente canción: **{song_queue[config.counter_song + 1][12:][:-4]}**.")
+        if config.current_player_message is None:
+            config.current_player_message = await ctx.send(
+                f"🎶 Reproduciendo: `{os.path.basename(audio_file[:-4])}`", view=controls
+            )
+
+            if song_queue and config.counter_song + 1 < len(song_queue):
+                siguiente_texto = "🎶 Siguiente canción: `Aleatorio`" if controls.random_song else f"🎶 Siguiente canción: `{os.path.basename(song_queue[config.counter_song + 1])[:-4]}`"
+                config.next_song_message = await ctx.send(siguiente_texto)
+
+        else:
+            await config.current_player_message.edit(
+                content=f"🎶 Reproduciendo: `{os.path.basename(audio_file[:-4])}`", view=controls
+            )
+
+            if song_queue and config.counter_song + 1 < len(song_queue):
+                siguiente_texto = "🎶 Siguiente canción: `Aleatorio`" if controls.random_song else f"🎶 Siguiente canción: `{os.path.basename(song_queue[config.counter_song + 1])[:-4]}`"
+                await config.next_song_message.edit(content=siguiente_texto)
+                
+        if config.extra_message == "":
+            await update_extra_message(ctx)
+
     except Exception as e:
         if song_queue:
             await play_next(ctx, controls)
@@ -322,6 +348,25 @@ async def create_controls(ctx):
     # Enviar un mensaje con los controles
     await ctx.send("Controles de música:", view=view)
 
+
+async def update_extra_message(ctx, content=config.extra_message):
+    pantalla_text = (
+        "🖥️ **Pantalla de estado**\n"
+        "╔═════════════════════════════════════════╗\n"
+        f"          `{content.center(50)}`\n"
+        "╚═════════════════════════════════════════╝"
+    )
+
+    try:
+        if config.extra_message and config.extra_message.channel:
+            await config.extra_message.edit(content=pantalla_text)
+        else:
+            config.extra_message = await ctx.send(pantalla_text)
+    except nextcord.NotFound:
+        config.extra_message = await ctx.send(pantalla_text)
+    except Exception as e:
+        print(f"[Error al actualizar pantalla extra]: {e}")
+        config.extra_message = await ctx.send(pantalla_text)
 
 async def check_disconnect(ctx):
     """Espera unos segundos y desconecta si no hay música."""

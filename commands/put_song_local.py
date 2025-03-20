@@ -2,7 +2,7 @@ import os
 import nextcord
 from nextcord.ext import commands
 from nextcord.ui import Modal, TextInput, View, Select
-from bot_config import song_queue, config
+from bot_config import song_queue, config, download_folder
 
 @commands.command(name="put_song_local")
 async def put_song_local_command(ctx, *, nombre_cancion):
@@ -31,11 +31,10 @@ class PlayModalLocal(Modal):
     async def callback(self, interaction: nextcord.Interaction):
         # Recuperar el nombre de la canción y convertirlo a minúsculas
         nombre_cancion = self.cancion_input.value.lower()
-        carpeta_canciones = "./canciones"
 
         # Buscar canciones que coincidan con el nombre proporcionado
         canciones_disponibles = [
-            archivo for archivo in os.listdir(carpeta_canciones)
+            archivo for archivo in os.listdir(download_folder)
             if archivo.endswith(".mp3") and nombre_cancion in archivo.lower()
         ]
 
@@ -48,7 +47,7 @@ class PlayModalLocal(Modal):
             return
         
         if len(canciones_disponibles) == 1:
-            ruta = os.path.join(carpeta_canciones, canciones_disponibles[0])
+            ruta = os.path.join(download_folder, canciones_disponibles[0])
             if 0 <= config.counter_song < len(song_queue):
                 song_queue.insert(config.counter_song + 1, ruta)
             else:

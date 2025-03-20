@@ -15,7 +15,6 @@ def setup(bot):
 
 @commands.command(name="queue", aliases=["cola"])
 async def queue(ctx):
-    print(config.counter_song)
     """Muestra las siguientes 10 canciones de la cola."""
     if not song_queue:
         await ctx.send("🚫 **La cola está vacía.**")

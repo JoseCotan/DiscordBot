@@ -19,6 +19,5 @@ async def stop(ctx):
     if voice_client and voice_client.is_playing():
         voice_client.stop()
         song_queue.clear()
-        await ctx.send("Música detenida.")
     else:
         await ctx.send("No estoy reproduciendo nada.")
